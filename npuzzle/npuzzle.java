@@ -317,7 +317,7 @@ class npuzzle {
 				e.printStackTrace();
 			}
 		} else if (args.length == 0){
-			System.out.println("please enter file name as input."); //return this is the is no file input
+			System.out.println("please enter file name as input."); //return this if the is no file input
 		}
 	}
 }
