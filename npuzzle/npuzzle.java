@@ -42,82 +42,68 @@ class	algo {
 		HashMap<String, String> hmap = new HashMap<String, String>();
 		functions f = new functions();
 		Node currentNode = null;
-		OpenList.add(node);
+		OpenList.add(node); //add root node to open list.
 		List<Node> lastNode = null;
 
 		boolean goalFound = false;
 		
-		while (OpenList.size() > 0) {
+		while (OpenList.size() > 0) { //check if open list is greater than zero.
 
-			while (OpenList.size() > 0) {
+			while (OpenList.size() > 0) { //check again.
 
-				currentNode = OpenList.get(0);
-				OpenList.remove(0);
-				CloseList.add(currentNode);
-				f.possibleMoves(currentNode, col, CloseList);
-				SuperList.add(currentNode);
+				currentNode = OpenList.get(0); //get first node of openlist.
+				OpenList.remove(0); //remove first node of open list.
+				CloseList.add(currentNode); // add node to close list.
+				f.possibleMoves(currentNode, col, CloseList); //check for possible moves in the node.
+				SuperList.add(currentNode); //add current node to list Superlist.
 			}
 
-			for (Node TheNode : SuperList) {
-				TempList = TheNode.getChildren();
+			for (Node TheNode : SuperList) { //get node from superlist
+				TempList = TheNode.getChildren(); //get children and save them on TempList
 
-				for (Node tmp : TempList) {
+				for (Node tmp : TempList) { // get node for TempList
 					
-					if (isSolution(tmp.getValue(), col)) {
+					if (isSolution(tmp.getValue(), col)) { //check if the current node is the solution
 
-						String var = makeString(tmp.getValue()); 
-						PathToSolution.add(var);
-						var = makeString(TheNode.getValue());
-						PathToSolution.add(0, var);
+						String var = makeString(tmp.getValue()); //if the node is the solution save it as a string
+											//var.
+						PathToSolution.add(var); //add to list PathToSolution
+						var = makeString(TheNode.getValue()); //get the parent
+						PathToSolution.add(0, var); // save it on the list at the top.
 						while (var != null) {
 							
-							var = hmap.get(var); //returns null
+							var = hmap.get(var); //get all parents from hashmap
 							if (var != null) {
-								PathToSolution.add(0, var);
+								PathToSolution.add(0, var);//save every move to the solution 
 							}
 						}
 
 						TempList.clear();
-						SuperList.clear();
+						SuperList.clear(); //clear everything so that we break out of the loop
 						OpenList.clear();
 					} else {
 						
-						String key = makeString(tmp.getValue());
-						String value = makeString(TheNode.getValue());
-						hmap.put(key, value);
+						String key = makeString(tmp.getValue()); // child
+						String value = makeString(TheNode.getValue()); //parent
+						hmap.put(key, value); //save parent and child as hashmaps
 
-						OpenList.add(tmp);
+						OpenList.add(tmp); //add tmp node to open list
 					}
 
-					if (TempList.size() == 0)
+					if (TempList.size() == 0) // if the is nothing in the list break
 						break ;
 				}
 
-				if (SuperList.size() == 0)
+				if (SuperList.size() == 0) // if the is nothing in the list break
 						break ;
 			}
-			SuperList.clear();
+			SuperList.clear(); //clear list
 		}
 
-		return PathToSolution;
+		return PathToSolution; //return a list of the shortest posible moves to the solution
 	}
 
-	public void PathTrack(List<Node> path, Node n) {
-
-		System.out.println("Tracing path ...");
-
-		List<Node> Children = n.getChildren();
-		
-		ListIterator it = Children.listIterator();
-
-		while (it.hasPrevious()) {
-
-			Node newNode = (Node)it.previous();
-			path.add(newNode);
-		}
-	}
-
-	public String makeString (int[] puz){
+	public String makeString (int[] puz){ //Covert interger array to string.
 
 		String var = null;
 		for (int i = 0; i < puz.length; i++) {
@@ -130,7 +116,7 @@ class	algo {
 		return var;
 	}
 
-	public boolean isSolution(int[] puzzle, int col) {
+	public boolean isSolution(int[] puzzle, int col) { // checks if the current puzzle is the same as this.
 
 		boolean isgoal = false;
 		int[] solution = {1, 2, 3, 4, 5, 6, 7, 8, 0};
@@ -152,7 +138,7 @@ class	algo {
 
 class functions {
 
-	public static boolean IsSamePuzzle(int[] p, int[] c) {
+	public static boolean IsSamePuzzle(int[] p, int[] c) { //checks if the puzzle is the same
 
 		boolean samePuzzle = true;
 
@@ -164,7 +150,8 @@ class functions {
 		return samePuzzle;
 	}
 
-	public static boolean Contains (List<Node> curr, Node node) {
+	public static boolean Contains (List<Node> curr, Node node) { //return true of false after checking the puzzle using
+									//the method isSamePuzzle
 
 		boolean contains = false;
 
@@ -178,11 +165,11 @@ class functions {
 	public void ft_swap(int[] puzzle, int i, int j) {
 
 		int tmp = puzzle[i];
-		puzzle[i] = puzzle[j];
+		puzzle[i] = puzzle[j]; //Just like c Prudy
 		puzzle[j] = tmp;
 	}
 
-	public int FindIndex(int[] puzzle) {
+	public int FindIndex(int[] puzzle) { // It finds the zero in the array and returns the possition of that zero (index).
 
 		int position = 0;
 
@@ -196,14 +183,14 @@ class functions {
 
 	public int[] CopyPuzzle(int[] newPuzzle, int[] puzzle) {
 
-		for (int i = 0; i < puzzle.length; i++) {
+		for (int i = 0; i < puzzle.length; i++) { //It makes a copy of the puzzle
 			newPuzzle[i] = puzzle[i];
 		}
 
 		return newPuzzle;
 	}
 
-	public void Right (Node newNode, int col, List<Node> curr) {
+	public void Right (Node newNode, int col, List<Node> curr) { // Move rigth
 
 		int[] puzzle = newNode.getValue();
 		int i = FindIndex(puzzle);
@@ -220,7 +207,7 @@ class functions {
 		}
 	}
 
-	public void Left (Node newNode, int col, List<Node> curr) {
+	public void Left (Node newNode, int col, List<Node> curr) { //Move left
 
 		int[] puzzle = newNode.getValue();
 		int i = FindIndex(puzzle);
@@ -238,7 +225,7 @@ class functions {
 
 	}
 
-	public void Down (Node newNode, int col, List<Node> curr) {
+	public void Down (Node newNode, int col, List<Node> curr) { //move Down
 
 		int[] puzzle = newNode.getValue();
 		int i = FindIndex(puzzle);
@@ -255,7 +242,7 @@ class functions {
 		}
 	}
 
-	public void Up (Node newNode, int col, List<Node> curr) {
+	public void Up (Node newNode, int col, List<Node> curr) { //Move up
 
 		int[] puzzle = newNode.getValue();
 		int i = FindIndex(puzzle);
@@ -275,7 +262,7 @@ class functions {
 	public void possibleMoves(Node p, int col, List<Node> curr) {
 
 		Left(p, col, curr);
-		Right(p, col, curr);
+		Right(p, col, curr); //checks all possible moves
 		Down(p, col, curr);
 		Up(p, col, curr);
 	}
@@ -287,21 +274,24 @@ class npuzzle {
 
 		functions f = new functions();
 		int col = 0;
-		if (args.length != 0) {
+		if (args.length != 0) { 		// args[0] is not the program name like in c. It is the first argument 
+							//which in this case will be the name of the text file we take as input.
 			File file = new File(args[0]);
 			try {
 
 				Scanner input = new Scanner(file);
-				while (input.hasNext()) {
-					col = Integer.parseInt(input.next());
-					break ;
+				while (input.hasNext()) {	//hasNext is like getnextline
+					col = Integer.parseInt(input.next()); 	//Interger.parseInt will convert the charecters into
+										// intergers. In this case it will only convert
+										// the number at the top which will be our column size
+					break ;					// then break out of the loop.
 				}
 
-				int[] puzzle = new int[col * col];
+				int[] puzzle = new int[col * col]; //set our column size e.g if column is 3 then it will be 3 * 3
 				String tmp = null;
 				while (input.hasNext()) {
 
-					String mystring = input.next();
+					String mystring = input.next(); //save the rest of the file as a string.
 					if (tmp != null) {
 						tmp += " ";
 						tmp += mystring;
@@ -310,24 +300,24 @@ class npuzzle {
 					}
 				}
 
-				String[] tmp2 = tmp.split(" ");
+				String[] tmp2 = tmp.split(" "); // Split the string
 				for (int i = 0; i < tmp2.length; i++) {
-					puzzle[i] = Integer.parseInt(tmp2[i]); 
+					puzzle[i] = Integer.parseInt(tmp2[i]); //Conver Split string into intergers
 				}
-				Node root = new Node(puzzle);
+				Node root = new Node(puzzle); // Create our first node
 
-				algo solve = new algo();
-				List<String> child = solve.BFS(root, col);
+				algo solve = new algo(); 
+				List<String> child = solve.BFS(root, col); // Return a list of the shortest path
 
-				for (String nbr : child) {
+				for (String nbr : child) { //print all puzzles returned as the shortest path
 					System.out.println(nbr);
 				}
 				
-			} catch (FileNotFoundException e) {
+			} catch (FileNotFoundException e) { //If the file doesn't exist
 				e.printStackTrace();
 			}
 		} else if (args.length == 0){
-			System.out.println("please enter file name as input.");
+			System.out.println("please enter file name as input."); //return this is the is no file input
 		}
 	}
 }
