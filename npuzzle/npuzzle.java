@@ -6,19 +6,21 @@ import java.util.Scanner;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.util.Queue;
+import java.util.Comparator;
+import java.util.PriorityQueue;
 
 class Node {
 
-	private List<Node> children = null;
+	private Queue<Node> children = null;
 	private int[] value;
-	private int man;
+	private int hvalue;
 	private int dept;
 
-	public Node (int[] value, int man, int dept) {
+	public Node (int[] value, int hvalue, int dept) {
 
 		this.children = new LinkedList<Node>();
 		this.value = value;
-		this.man = man;
+		this.hvalue = hvalue;
 		this.dept = dept;
 	}
 
@@ -34,71 +36,86 @@ class Node {
 		return dept;
 	}
 
-	public List<Node> getChildren() {
+	public Queue<Node> getChildren() {
 		return children;
 	}
 
-	public int getManhattan() {
-		return man;
+	public int getHeuristicValue() {
+		return hvalue;
+	}
+}
+
+class puzzleComparator implements Comparator <Node> {
+
+	public int compare(Node n1, Node n2) {
+		if (n1.getHeuristicValue() > n2.getHeuristicValue()) {
+			return 1;
+		} else if (n1.getHeuristicValue() < n2.getHeuristicValue()) {
+			return -1;
+		}
+		return 0;
 	}
 }
 
 class	algo {
 
-	public List<String> BFS(Node node, int col) {
+	public List<String> BFS(Node root, int col, int hueri) {
 		
-		List<Node> OpenList = new LinkedList<Node>();
-		List<Node> CloseList = new LinkedList<Node>();
+		Queue<Node> CloseList = new LinkedList<Node>();
 		List<String> PathToSolution = new LinkedList<String>();
-		List<Node> TempList = new LinkedList<Node>();
+		PriorityQueue<Node> OpenList = new PriorityQueue<Node>(new puzzleComparator());
+		Queue<Node> TempList = new LinkedList<Node>();
 		HashMap<String, String> hmap = new HashMap<String, String>();
 		functions f = new functions();
 		Node currentNode = null;
-		OpenList.add(node);
+		OpenList.add(root);
 		int moves = 0;
 
 		boolean goalFound = false;
-		int j = 0;
-		while (OpenList.size() > 0 && j < 5) {
 
-			currentNode = OpenList.get(0);
-			OpenList.remove(0);
-			f.possibleMoves(currentNode, col, CloseList);
-			CloseList.add(currentNode);
+		if (!f.isSolution(root.getValue(), col)) {
+			while (OpenList.size() > 0) {
 
-			TempList = currentNode.getChildren();
+				currentNode = OpenList.remove();
+				f.possibleMoves(currentNode, col, hueri, CloseList);
+				CloseList.add(currentNode);
+
+				TempList = currentNode.getChildren();
 				
-			for (Node tmp : TempList) {
+				for (Node tmp : TempList) {
 					
-				if (isSolution(tmp.getValue(), col)) {
+					if (f.isSolution(tmp.getValue(), col)) {
 
-					moves = tmp.getdept();
-					String var = makeString(tmp.getValue()); 
-					PathToSolution.add(var);
-					var = makeString(currentNode.getValue());
-					PathToSolution.add(0, var);
-					while (var != null) {
+						moves = tmp.getdept();
+						String var = makeString(tmp.getValue()); 
+						PathToSolution.add(var);
+						var = makeString(currentNode.getValue());
+						PathToSolution.add(0, var);
+						while (var != null) {
 							
-						var = hmap.get(var);
-						if (var != null) {
-							PathToSolution.add(0, var);
+							var = hmap.get(var);
+							if (var != null) {
+								PathToSolution.add(0, var);
+							}
 						}
-					}
-					TempList.clear();
-					OpenList.clear();
+						TempList.clear();
+						OpenList.clear();
 
-				} else {
+					} else {
 						
-					String key = makeString(tmp.getValue());
-					String value = makeString(currentNode.getValue());
-					hmap.put(key, value);
-					addList(tmp, OpenList);
-				}
+						String key = makeString(tmp.getValue());
+						String value = makeString(currentNode.getValue());
+						hmap.put(key, value);
+						OpenList.add(tmp);
+					}
 
-				if (TempList.size() == 0)
-					break ;
-			}
+					if (TempList.size() == 0)
+						break ;
+				}
 		}
+	} else {
+		PathToSolution.add(makeString(root.getValue()));
+	}
 		System.out.println("Number of Moves: " + moves);
 		return PathToSolution;
 	}
@@ -116,66 +133,6 @@ class	algo {
 		return var;
 	}
 
-	private int[] generateGoal(int col) {
-
- 		int[] goal = new int[col * col];
- 		for (int i = 0; i < col * col; i++) {
- 			if (i == (col * col) - 1)
- 				goal[i] = 0;
- 			else
- 				goal[i] = i + 1;
- 		}
-
- 		return goal;
- 	}
-
-	public boolean isSolution(int[] puzzle, int col) {
-
-		boolean isgoal = false;
-		int[] solution = new int[col * col];
-		solution = generateGoal(col);
-		int i = 0;
-
-		while (i < solution.length) {
-
-			if (puzzle[i] == solution[i]) {
-				i++;
-				if (i == (col * col))
-					isgoal = true;
-			} else {
-				break ;
-			}
-		}
-		return isgoal;
-	}
-
-	public void addList(Node puzzle, List<Node> queue) {
-		boolean add = false;
-		int man = puzzle.getManhattan();
-		if (queue.size() != 0) {
-			
-			int i = 0;
-			for (Node current : queue) {
-
-				int man2 = current.getManhattan();
-				if (man < man2) {
-					add = true;
-					break ;
-				}
-				i++;
-			}
-
-			if (add) {
-				queue.add(i, puzzle);
-			} else {
-				queue.add(puzzle);
-			}
-
-		} else {
-			queue.add(puzzle);
-		}
-	}
-
 	public void printNode (Node puzzleNode, int col) {
 
 		int[] puzzle = new int[col * col];
@@ -190,27 +147,25 @@ class	algo {
 		System.out.println();
 	}
 
-	public int Man(int[] puzzle, int col) {
-
-		int ans = 0;
-		int[] goal = {1, 2, 3, 4, 5, 6, 7, 8, 0};
-
-		for (int i = 0; i < goal.length - 1; i++) {
- 			
- 			int j = 0;
- 			while (goal[i] != puzzle[j]) {
- 				j++;
- 			}
- 			ans += Math.abs(i / col - j / col) + Math.abs(i % col - j % col);
- 		}
- 		return ans;
- 	}
 }
 
 class functions {
 
 	List<Node> mytmp = new LinkedList<Node>();
 	Node newNode;
+
+	public int[] generateGoal(int col) {
+
+ 		int[] goal = new int[col * col];
+ 		for (int i = 0; i < col * col; i++) {
+ 			if (i == (col * col) - 1)
+ 				goal[i] = 0;
+ 			else
+ 				goal[i] = i + 1;
+ 		}
+
+ 		return goal;
+ 	}
 
 	public boolean IsSamePuzzle(int[] p, int[] c) {
 
@@ -224,11 +179,11 @@ class functions {
 		return samePuzzle;
 	}
 
-	public boolean Contains (List<Node> curr, Node node) {
+	public boolean Contains (Queue<Node> closed, Node node) {
 
 		boolean contains = false;
 
-		for (Node checklist : curr) {
+		for (Node checklist : closed) {
 			if (IsSamePuzzle(checklist.getValue(), node.getValue()))
 				contains = true;
 		}
@@ -263,9 +218,10 @@ class functions {
 		return newPuzzle;
 	}
 
-	public void Right (Node newNode, int col, List<Node> curr) {
+	public void Right (Node newNode, int col, int heuri, Queue<Node> closed) {
 
 		this.newNode = newNode;
+		int heuriValue = 0;
 
 		int[] puzzle = newNode.getValue();
 		int dept = newNode.getdept();
@@ -279,16 +235,24 @@ class functions {
 			CopyPuzzle(newPuzzle, puzzle);
 			ft_swap(newPuzzle, i, i + 1);
 
-			Node addNode = new Node(newPuzzle, Man(newPuzzle, col), dept);
-			if (!Contains(curr, addNode)) {
+			if (heuri == 1)
+				heuriValue = Man(newPuzzle, col);
+			else if (heuri == 2)
+				heuriValue = Hamming(newPuzzle, col);
+			else
+				heuriValue = linerConflict(newPuzzle, col);
+
+			Node addNode = new Node(newPuzzle, heuriValue, dept);
+			if (!Contains(closed, addNode)) {
 				mytmp.add(addNode);
 			}
 		}
 	}
 
-	public void Left (Node newNode, int col, List<Node> curr) {
+	public void Left (Node newNode, int col, int heuri, Queue<Node> closed) {
 
 		this.newNode = newNode;
+		int heuriValue = 0;
 
 		int[] puzzle = newNode.getValue();
 		int dept = newNode.getdept();
@@ -301,16 +265,24 @@ class functions {
 			CopyPuzzle(newPuzzle, puzzle);
 			ft_swap(newPuzzle, i, i - 1);
 
+			if (heuri == 1)
+				heuriValue = Man(newPuzzle, col);
+			else if (heuri == 2)
+				heuriValue = Hamming(newPuzzle, col);
+			else
+				heuriValue = linerConflict(newPuzzle, col);
+
 			Node addNode = new Node(newPuzzle, Man(newPuzzle, col), dept);
-			if (!Contains(curr, addNode)) {
+			if (!Contains(closed, addNode)) {
 				mytmp.add(addNode);
 			}
 		}
 	}
 
-	public void Down (Node newNode, int col, List<Node> curr) {
+	public void Down (Node newNode, int col, int heuri, Queue<Node> closed) {
 
 		this.newNode = newNode;
+		int heuriValue = 0;
 
 		int[] puzzle = newNode.getValue();
 		int dept = newNode.getdept();
@@ -323,16 +295,24 @@ class functions {
 			CopyPuzzle(newPuzzle, puzzle);
 			ft_swap(newPuzzle, i, i + col);
 
+			if (heuri == 1)
+				heuriValue = Man(newPuzzle, col);
+			else if (heuri == 2)
+				heuriValue = Hamming(newPuzzle, col);
+			else
+				heuriValue = linerConflict(newPuzzle, col);
+
 			Node addNode = new Node(newPuzzle, Man(newPuzzle, col), dept);
-			if (!Contains(curr, addNode)) {
+			if (!Contains(closed, addNode)) {
 				mytmp.add(addNode);
 			}
 		}
 	}
 
-	public void Up (Node newNode, int col, List<Node> curr) {
+	public void Up (Node newNode, int col, int heuri, Queue<Node> closed) {
 
 		this.newNode = newNode;
+		int heuriValue = 0;
 
 		int[] puzzle = newNode.getValue();
 		int dept = newNode.getdept();
@@ -344,23 +324,30 @@ class functions {
 			int[] newPuzzle = new int[col * col];
 			CopyPuzzle(newPuzzle, puzzle);
 			ft_swap(newPuzzle, i, i - col);
+
+			if (heuri == 1)
+				heuriValue = Man(newPuzzle, col);
+			else if (heuri == 2)
+				heuriValue = Hamming(newPuzzle, col);
+			else
+				heuriValue = linerConflict(newPuzzle, col);
 			
 			Node addNode = new Node(newPuzzle, Man(newPuzzle, col), dept);
-			if (!Contains(curr, addNode)) {
+			if (!Contains(closed, addNode)) {
 				mytmp.add(addNode);
 			}
 		}
 	}
 
-	public void possibleMoves(Node p, int col, List<Node> curr) {
+	public void possibleMoves(Node p, int col, int heuri, Queue<Node> closed) {
 
-		Left(p, col, curr);
-		Right(p, col, curr);
-		Down(p, col, curr);
-		Up(p, col, curr);
+		Left(p, col, heuri, closed);
+		Right(p, col, heuri, closed);
+		Down(p, col, heuri, closed);
+		Up(p, col, heuri, closed);
 
 		for (Node checkNode : mytmp) {
-			if (!Contains(curr, checkNode))
+			if (!Contains(closed, checkNode))
 				newNode.addChild(checkNode);
 		}
 		mytmp.clear();
@@ -369,7 +356,7 @@ class functions {
 	public int Man(int[] puzzle, int col) {
 
 		int ans = 0;
-		int[] goal = {1, 2, 3, 4, 5, 6, 7, 8, 0};
+		int[] goal = generateGoal(col);
 
 		for (int i = 0; i < goal.length - 1; i++) {
  			
@@ -426,6 +413,22 @@ class functions {
 		return Solvable;
 	}
 
+	public boolean isDouble (int[] puzzle) {
+
+ 		boolean foundDouble = false;
+
+ 		for (int i = 0; i < puzzle.length - 1; i++) {
+
+ 			for (int j = i + 1; j < puzzle.length; j++) {
+ 				if (puzzle[i] == puzzle[j]) {
+ 					foundDouble = true;
+ 					break ;
+ 				}
+ 			}
+ 		}
+ 		return foundDouble;
+ 	}
+
 	public int[] readFile(Scanner input, int col) {
 
 		int[] puzzle = new int[col * col];
@@ -445,8 +448,11 @@ class functions {
 
 		if (checkparams(tmp2, col)) {
 			for (int i = 0; i < tmp2.length; i++) {
-				puzzle[i] = Integer.parseInt(tmp2[i]); 
+				puzzle[i] = Integer.parseInt(tmp2[i]);
 			}
+
+			if (isDouble(puzzle))
+				return null;
 		} else {
 			return null;
 		}
@@ -480,13 +486,143 @@ class functions {
 		}
 		return true;
 	}
+
+	public int Hamming (int[] puzzle, int col) {
+
+		int[] goal = generateGoal(col);
+		int ham = 0;
+		for (int i = 0; i < puzzle.length; i++) {
+			if (puzzle[i] != goal[i] && puzzle[i] != 0)
+				ham++;
+		}
+
+		return ham;
+	}
+
+	public boolean isSolution(int[] puzzle, int col) {
+
+		boolean isgoal = false;
+		int[] solution = generateGoal(col);
+		int i = 0;
+
+		while (i < solution.length) {
+
+			if (puzzle[i] == solution[i]) {
+				i++;
+				if (i == (col * col))
+					isgoal = true;
+			} else {
+				break ;
+			}
+		}
+		return isgoal;
+	}
+
+	private int checkpos (int i, int j, int[] puzzle) {
+
+		int[] goal = {1, 2, 3, 4, 5, 6, 7, 8, 0};
+
+		if (puzzle[i] == goal[i] && puzzle[j] == goal[j] && puzzle[i] != 0 
+			&& puzzle[j] != 0 && goal[i] != 0 && goal[i] != 0) {
+
+			return 2;
+		}
+
+		return 0;
+	}
+
+	public int linerConflict (int[] puzzle, int col) {
+
+		int temp = col;
+		int conflict = 0;
+		for (int i = 0; i < puzzle.length - 1; i++) {
+
+			if (i + 1 != temp) {
+				int[] copypuz = new int[col * col];
+				CopyPuzzle(copypuz, puzzle);
+				ft_swap(copypuz, i, i + 1);
+				conflict += checkpos(i, i + 1, copypuz);
+			} else if ((temp == i + 1 ) && (i + 1 != col * col))
+				temp *= 2;
+		}
+
+		for (int i = 0; i < puzzle.length - col; i++) {
+
+			if (i != (col * col) - col) {
+				int[] copypuz = new int[col * col];
+				CopyPuzzle(copypuz, puzzle);
+				ft_swap(copypuz, i, i + col);
+				conflict += checkpos(i, i + 1, copypuz);
+			} else
+				break ;
+		}
+
+		return conflict + Man(puzzle, col);
+	}
+
+	public int heuristicloop() {
+		
+		Scanner input = new Scanner(System.in);
+		System.out.println("Please choose a number to choose a heuristic" 
+				+ "\n[1] Manhattan Distance"
+				+ "\n[2] Hamming Distance"
+				+ "\n[3] Liner Conflict");
+		while (input.hasNext()) {
+
+			String nbr = input.next();
+			if (nbr.equals("1")) {
+				return 1;
+			} else if (nbr.equals("2")) {
+				return 2;
+			} else if (nbr.equals("3")) {
+				return 3;
+			} else {
+				System.out.println("Invalid entry.\n");
+
+				System.out.println("Please choose a number to choose a heuristic" 
+				+ "\n[1] Manhattan Distance"
+				+ "\n[2] Hamming Distance"
+				+ "\n[3] Liner Conflict");
+			}
+		}
+		return 0;
+	}
 }
 
 class npuzzle {
 
-	public static void main(String[] args) {
+	public static long p(int[] puzzle, int col) {
 
 		functions f = new functions();
+		int heuri = f.heuristicloop();
+		Node root = new Node(puzzle, 0, 0);
+			
+		algo solve = new algo();
+		long startTime = System.currentTimeMillis();
+		List<String> child = solve.BFS(root, col, heuri);
+							
+		System.out.println("Complexity in size: " + col);
+		for (String nbr : child) {
+			System.out.println(nbr);
+		}
+
+		return startTime;
+	}
+
+	public static void solvingTime (long startTime) {
+		long endTime = System.currentTimeMillis();
+		long sum = (endTime - startTime);
+		if (sum / 1000 != 0)
+			System.out.println("\n" + sum / 1000 + "." + sum % 1000 + " seconds");
+		else 
+			System.out.println("\n" + sum + " Milliseconds");
+	}
+
+	public static void main(String[] args) {
+
+		long startTime = 0;
+		functions f = new functions();
+		boolean time = false;
 		int col = 0;
 		if (args.length != 0) {
 			File file = new File(args[0]);
@@ -499,28 +635,20 @@ class npuzzle {
 				int[] puzzle = f.readFile(input, col);
 				if (puzzle != null) {
 					if (f.isSolvable(puzzle, col)) {
-						Node root = new Node(puzzle, f.Man(puzzle, col), 0);
-			
-						algo solve = new algo();
-						List<String> child = solve.BFS(root, col);
-							
-						System.out.println("Complexity in size: " + col);
-						for (String nbr : child) {
-							System.out.println(nbr);
-						}
-	
-					} else {
+
+						startTime = p(puzzle, col);
+						time = true;
+					} else
 						System.out.println("unsolvable");
-					}
-				} else {
+				} else 
 					System.out.println("Invalid characters or number of charactors");
-				}
-			} catch (FileNotFoundException e){
-				e.printStackTrace();
-			}
+			} catch (FileNotFoundException e)
+				System.out.println("File not found");
 				
-		} else if (args.length == 0){
+		} else if (args.length == 0)
 			System.out.println("please enter file name as input.");
-		}
+
+		if (time)
+			solvingTime(startTime);
 	}
 }
