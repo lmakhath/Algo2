@@ -6,6 +6,11 @@ import java.util.Queue;
 
 class npuzzle {
 
+	public static final String RESET = "\u001B[0m";
+	public static final String RED = "\u001B[31m";
+	public static final String BLUE = "\u001B[34m";
+	public static final String GREEN = "\u001B[32m";
+
 	public static long p(int[] puzzle, int col) {
 
 		heuristics h = new heuristics();
@@ -16,7 +21,7 @@ class npuzzle {
 		long startTime = System.currentTimeMillis();
 		List<String> child = solve.BFS(root, col, heuri);
 							
-		System.out.println("Complexity in size: " + col);
+		System.out.println(GREEN + "Complexity in size: " + col + "\n" + RESET);
 		for (String nbr : child) {
 			System.out.println(nbr);
 		}
@@ -27,9 +32,9 @@ class npuzzle {
 		long endTime = System.currentTimeMillis();
 		long sum = (endTime - startTime);
 		if (sum / 1000 != 0)
-			System.out.println("\n" + sum / 1000 + "." + sum % 1000 + " seconds");
+			System.out.println(BLUE + "\n" + sum / 1000 + "." + sum % 1000 + " seconds");
 		else 
-			System.out.println("\n" + sum + " Milliseconds");
+			System.out.println(GREEN + "\n" + sum + " Milliseconds");
 	}
 
 	public static void main(String[] args) {
@@ -53,14 +58,14 @@ class npuzzle {
 						startTime = p(puzzle, col);
 						time = true;
 					} else
-						System.out.println("unsolvable");
+						System.out.println(BLUE + "unsolvable");
 				} else 
-					System.out.println("Invalid characters or number of charactors");
+					System.out.println(RED + "Invalid characters or number of charactors");
 			} catch (FileNotFoundException e) {
-				System.out.println("File not found");
+				System.out.println(RED + "File not found");
 			}	
 		} else if (args.length == 0) {
-			System.out.println("please enter file name as input.");
+			System.out.println(GREEN + "please enter file name as input.");
 		}
 
 		if (time)

@@ -32,6 +32,8 @@ class	algo {
 		OpenList.add(root);
 		int moves = 0;
 
+		String BLUE = "\u001B[34m";
+
 		boolean goalFound = false;
 
 		if (!f.isSolution(root.getValue(), col)) {
@@ -77,7 +79,7 @@ class	algo {
 	} else {
 		PathToSolution.add(f.makeString(root.getValue()));
 	}
-		System.out.println("Number of Moves: " + moves);
+		System.out.println(BLUE + "Number of Moves: " + moves);
 		return PathToSolution;
 	}
 }
